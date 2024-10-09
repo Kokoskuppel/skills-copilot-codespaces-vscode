@@ -1,57 +1,52 @@
-// Create a web server that listens on port 3000. It should respond to a request to /comments in one of two ways:
-// If the request is a GET request, it should return a list of comments in JSON format.
-// If the request is a POST request, it should add a new comment to the list of comments and return a 201 status code.
-// The list of comments should be stored in a variable that is accessible to the web server.
+// Create web server using express
+// Create a route to handle the GET request to the /comments URL
+// Create a route to handle the POST request to the /comments URL
+// Create a route to handle the PUT request to the /comments URL
+// Create a route to handle the DELETE request to the /comments URL
 
-// Example request:
-// POST /comments
-// Content-Type: application/json
+var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
+app.use(bodyParser.json());
 
-// { "author": "John Doe", "message": "I am so cool." }
+var comments = [
+  {
+    name: 'John',
+    message: 'Hello everyone!'
+  },
+  {
+    name: 'Jane',
+    message: 'Hi John!'
+  }
+];
 
-// Example response:
-// Status: 201 Created
+app.get('/comments', function(req, res){
+  res.json(comments);
+});
 
-// GET /comments
-// Content-Type: application/json
+app.post('/comments', function(req, res){
+  var newComment = req.body;
+  comments.push(newComment);
+  res.json(newComment);
+});
 
-// [
-//     { "author": "John Doe", "message": "I am so cool." }
-// ]
-// This is the list of comments that should be returned by the web server. It should start out empty and be populated by the POST requests.
+app.put('/comments', function(req, res){
+  var updatedComment = req.body;
+  comments = comments.map(function(comment){
+    if(comment.name === updatedComment.name){
+      return updatedComment;
+    }
+    return comment;
+  });
+  res.json(updatedComment);
+});
 
-// You can use the http module to create the web server. The fs module will help you read and write the list of comments to a file.
+app.delete('/comments', function(req, res){
+  var deletedComment = req.body;
+  comments = comments.filter(function(comment){
+    return comment.name !== deletedComment.name;
+  });
+  res.json(deletedComment);
+});
 
-const http = require('http');
-const fs = require('fs');
-
-let comments = [];
-
-const server = http.createServer((req, res) => {
-    if (req.method === 'GET' && req.url === '/comments') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(
-
-            comments
-
-        ));
-        } else if (req.method === 'POST' && req.url === '/comments') {
-            let body = '';
-            req.on('data', chunk => {
-                body += chunk.toString();
-            });
-            req.on('end', () => {
-                const newComment = JSON.parse(body);
-                comments.push(newComment);
-                res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(newComment));
-            });
-        } else {
-            res.writeHead(404, { 'Content-Type': 'text/plain' });
-            res.end('Not Found');
-        }
-    });
-    
-    server.listen(3000, () => {
-        console.log('Server is listening on port 3000');
-    });
+app.listen(3000);
